@@ -58,6 +58,26 @@ processed, and re-processing overwrites deterministic file names. The
 [docs/aws-iam-setup.md](docs/aws-iam-setup.md); credentials are never stored
 in this repo.
 
+## Querying
+
+```bash
+# All near-miss clips from the last 7 days
+AWS_PROFILE=object-tracker-pipeline python -m object_tracker_pipeline.query \
+    --catalog s3://object-tracker-am/catalog --tier near_misses --days 7
+```
+
+Each result line ends with the clip's `.ts` key, so anything the query finds
+is one `aws s3 cp` away from watchable. Filters compose: `--tier`, `--class
+person`, `--days N`. From Python, `query.connect()` + `query.clips()` return
+Arrow tables; the `detections` view is plain SQL for anything custom:
+
+```python
+from object_tracker_pipeline import query
+
+con = query.connect("s3://object-tracker-am/catalog")
+con.execute("SELECT class_name, count(*) FROM detections GROUP BY 1").fetchall()
+```
+
 ## Development
 
 ```bash
