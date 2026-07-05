@@ -1,16 +1,21 @@
 # object-tracker-pipeline
 
-ELT layer for the [object-tracker](https://github.com/amanning1080/object-tracker) edge capture system.
+ELT layer for the [object-tracker](https://github.com/AlaricManning/object-tracker) edge capture system.
 
 Edge devices upload clips (`.ts` video + binary `.klv` metadata) to `s3://object-tracker-am/raw/`. This pipeline unpacks the KLV detection metadata into a partitioned Parquet catalog under `s3://object-tracker-am/catalog/`, queryable with DuckDB or Athena — e.g. "show all near-miss clips from last week."
 
 ## Architecture
 
 ```
-s3://object-tracker-am/raw/          s3://object-tracker-am/catalog/
-  ├── <clip>.ts                        ├── detections/date=YYYY-MM-DD/*.parquet
-  └── <clip>.klv        ── sync ──►    └── _manifest/   (processed-clip ledger)
+s3://object-tracker-am/raw/                  s3://object-tracker-am/catalog/
+  └── {session_id}/                            ├── detections/date=YYYY-MM-DD/*.parquet
+      ├── {tier}/clip_N.ts                     └── _manifest/   (processed-clip ledger)
+      ├── {tier}/clip_N.klv    ── sync ──►
+      └── session_summary.json     (tier = hits | near_misses)
 ```
+
+Only the tiny `.klv` metadata files are ever downloaded; the videos stay put
+and are addressed by the catalog's `session_id`/`clip_id`/`frame_id` columns.
 
 - **Extract** — list `raw/` for clips not yet in the manifest, download `.klv` files
 - **Transform** — parse KLV packets (vendored parser; the KLV contract is owned by the edge repo) into Arrow tables
@@ -38,18 +43,20 @@ re-processing a clip overwrites rather than duplicates.
 
 ```bash
 # See what a sync would do, without changing anything
-AWS_PROFILE=<pipeline-profile> python -m object_tracker_pipeline.sync \
+AWS_PROFILE=object-tracker-pipeline python -m object_tracker_pipeline.sync \
     --bucket object-tracker-am --dry-run
 
 # Run it for real
-AWS_PROFILE=<pipeline-profile> python -m object_tracker_pipeline.sync \
+AWS_PROFILE=object-tracker-pipeline python -m object_tracker_pipeline.sync \
     --bucket object-tracker-am
 ```
 
 Idempotent and crash-safe: Parquet is uploaded before a clip is marked
 processed, and re-processing overwrites deterministic file names. The
-pipeline's IAM identity (read `raw/*`, write `catalog/*`) is documented in a
-later PR; credentials are never stored in this repo.
+`object-tracker-pipeline` profile setup — its IAM policy is read-only on
+`raw/*`, read/write on `catalog/*`, no delete anywhere — is documented in
+[docs/aws-iam-setup.md](docs/aws-iam-setup.md); credentials are never stored
+in this repo.
 
 ## Development
 
@@ -64,4 +71,6 @@ pytest
 
 - Extract the vendored KLV parser into a shared package (git-tag pin or AWS CodeArtifact) consumed by both this repo and the edge repo
 - DynamoDB-backed `StateStore` for per-clip retry/error tracking
-- Scheduled sync (cron/systemd) with backfill support
+- Scheduled sync (cron/systemd, or GitHub Actions with OIDC) with backfill support
+- Manifest compaction (many small `_manifest/` objects → one) if ledger listing ever gets slow
+- Catalog hygiene: if `raw/` ever gets retention-based deletion, remove catalog rows whose `.ts` no longer exists
