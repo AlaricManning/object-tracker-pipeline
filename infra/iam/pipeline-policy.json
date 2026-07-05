@@ -1,0 +1,28 @@
+{
+  "Version": "2012-10-17",
+  "Statement": [
+    {
+      "Sid": "ListRawAndCatalogOnly",
+      "Effect": "Allow",
+      "Action": "s3:ListBucket",
+      "Resource": "arn:aws:s3:::object-tracker-am",
+      "Condition": {
+        "StringLike": {
+          "s3:prefix": ["raw/*", "catalog/*"]
+        }
+      }
+    },
+    {
+      "Sid": "ReadRawClips",
+      "Effect": "Allow",
+      "Action": "s3:GetObject",
+      "Resource": "arn:aws:s3:::object-tracker-am/raw/*"
+    },
+    {
+      "Sid": "ReadWriteCatalog",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject"],
+      "Resource": "arn:aws:s3:::object-tracker-am/catalog/*"
+    }
+  ]
+}
