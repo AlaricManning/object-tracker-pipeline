@@ -23,5 +23,10 @@ testpaths = ["tests"]
 [tool.ruff]
 target-version = "py312"
 
+[tool.ruff.format]
+# Vendored verbatim from the edge repo; must stay byte-identical for the
+# drift-guard test, so the formatter keeps its hands off.
+exclude = ["src/object_tracker_pipeline/klv.py"]
+
 [tool.ruff.lint]
 select = ["E", "F", "W", "I", "UP", "B"]
