@@ -34,6 +34,23 @@ re-processing a clip overwrites rather than duplicates.
 | `confidence`, `x1`, `y1`, `x2`, `y2` | float32 | matches the float32 wire format |
 | `date` | date32 | partition key, derived per row from `timestamp` |
 
+## Running
+
+```bash
+# See what a sync would do, without changing anything
+AWS_PROFILE=<pipeline-profile> python -m object_tracker_pipeline.sync \
+    --bucket object-tracker-am --dry-run
+
+# Run it for real
+AWS_PROFILE=<pipeline-profile> python -m object_tracker_pipeline.sync \
+    --bucket object-tracker-am
+```
+
+Idempotent and crash-safe: Parquet is uploaded before a clip is marked
+processed, and re-processing overwrites deterministic file names. The
+pipeline's IAM identity (read `raw/*`, write `catalog/*`) is documented in a
+later PR; credentials are never stored in this repo.
+
 ## Development
 
 ```bash
