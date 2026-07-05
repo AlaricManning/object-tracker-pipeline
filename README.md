@@ -17,6 +17,23 @@ s3://object-tracker-am/raw/          s3://object-tracker-am/catalog/
 - **Load** — write date-partitioned Parquet to `catalog/`, update the manifest
 - **Query** — DuckDB directly over S3, or Athena via Glue tables
 
+## Catalog schema
+
+One row per detection per frame, hive-partitioned by capture date
+(`detections/date=YYYY-MM-DD/`), one deterministically named file per clip so
+re-processing a clip overwrites rather than duplicates.
+
+| Column | Type | Notes |
+|---|---|---|
+| `session_id`, `clip_id` | string | identify the clip; map back to `raw/{session_id}/{tier}/{clip_id}.ts` |
+| `tier` | string | `hits` / `near_misses` — from the S3 key path, not the KLV |
+| `frame_id` | int32 | 0-based frame index within the clip's `.ts` (pre-roll included) |
+| `timestamp` | timestamp (microseconds, UTC) | stamped at frame capture; naive values treated as UTC |
+| `track_id` | int64 | Norfair track id |
+| `class_name` | string | COCO class |
+| `confidence`, `x1`, `y1`, `x2`, `y2` | float32 | matches the float32 wire format |
+| `date` | date32 | partition key, derived per row from `timestamp` |
+
 ## Development
 
 ```bash

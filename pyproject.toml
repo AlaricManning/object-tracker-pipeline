@@ -8,7 +8,9 @@ version = "0.1.0"
 description = "ELT pipeline: unpack object-tracker KLV clip metadata from S3 into a queryable Parquet catalog"
 readme = "README.md"
 requires-python = ">=3.12"
-dependencies = []
+dependencies = [
+    "pyarrow>=16",
+]
 
 [project.optional-dependencies]
 dev = [
