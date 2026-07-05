@@ -8,7 +8,7 @@
       "Resource": "arn:aws:s3:::object-tracker-am",
       "Condition": {
         "StringLike": {
-          "s3:prefix": ["raw/*", "catalog/*"]
+          "s3:prefix": ["raw/*", "catalog/*", "athena-results/*"]
         }
       }
     },
@@ -23,6 +23,40 @@
       "Effect": "Allow",
       "Action": ["s3:GetObject", "s3:PutObject"],
       "Resource": "arn:aws:s3:::object-tracker-am/catalog/*"
+    },
+    {
+      "Sid": "AthenaResults",
+      "Effect": "Allow",
+      "Action": ["s3:GetObject", "s3:PutObject"],
+      "Resource": "arn:aws:s3:::object-tracker-am/athena-results/*"
+    },
+    {
+      "Sid": "BucketLocationForAthena",
+      "Effect": "Allow",
+      "Action": "s3:GetBucketLocation",
+      "Resource": "arn:aws:s3:::object-tracker-am"
+    },
+    {
+      "Sid": "AthenaQuerying",
+      "Effect": "Allow",
+      "Action": [
+        "athena:StartQueryExecution",
+        "athena:GetQueryExecution",
+        "athena:GetQueryResults",
+        "athena:StopQueryExecution",
+        "athena:GetWorkGroup"
+      ],
+      "Resource": "arn:aws:athena:*:*:workgroup/primary"
+    },
+    {
+      "Sid": "GlueReadDetectionsTable",
+      "Effect": "Allow",
+      "Action": ["glue:GetDatabase", "glue:GetTable", "glue:GetPartitions"],
+      "Resource": [
+        "arn:aws:glue:*:*:catalog",
+        "arn:aws:glue:*:*:database/object_tracker",
+        "arn:aws:glue:*:*:table/object_tracker/detections"
+      ]
     }
   ]
 }

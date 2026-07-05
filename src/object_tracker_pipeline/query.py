@@ -42,6 +42,9 @@ def connect(catalog: str) -> duckdb.DuckDBPyConnection:
     `catalog` is the catalog root — a local path or `s3://bucket/catalog`.
     """
     con = duckdb.connect()
+    # DuckDB defaults to the system timezone; keep results in UTC like the
+    # catalog itself, so displayed times match session/key names.
+    con.execute("SET TimeZone = 'UTC'")
     if catalog.startswith("s3://"):
         con.execute("INSTALL httpfs; LOAD httpfs;")
         con.execute("CREATE SECRET (TYPE s3, PROVIDER credential_chain)")
@@ -118,7 +121,7 @@ def main(argv: list[str] | None = None) -> int:
     for row in table.to_pylist():
         classes = ",".join(row["classes"])
         print(
-            f"{row['started_at']:%Y-%m-%d %H:%M:%S}  "
+            f"{row['started_at']:%Y-%m-%d %H:%M:%S %Z}  "
             f"{row['tier']:<11}  "
             f"peak={row['peak_confidence']:.2f}  "
             f"n={row['detections']:<4d}  "
