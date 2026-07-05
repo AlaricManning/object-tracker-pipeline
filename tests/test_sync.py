@@ -1,6 +1,7 @@
 """End-to-end sync loop tests against moto's fake S3."""
 
 import pyarrow.dataset as ds
+import pytest
 from conftest import BUCKET
 
 from object_tracker_pipeline import klv, sync
@@ -151,3 +152,17 @@ def test_cli_dry_run(s3):
     put_clip(s3, "clip_0001")
     assert sync.main(["--bucket", BUCKET, "--dry-run"]) == 0
     assert catalog_keys(s3) == []
+
+
+def test_cli_bucket_falls_back_to_env(s3, monkeypatch):
+    monkeypatch.setenv("OBJECT_TRACKER_BUCKET", BUCKET)
+    put_clip(s3, "clip_0001")
+    assert sync.main(["--dry-run"]) == 0
+    assert catalog_keys(s3) == []
+
+
+def test_cli_errors_without_bucket_or_env(monkeypatch, capsys):
+    monkeypatch.delenv("OBJECT_TRACKER_BUCKET", raising=False)
+    with pytest.raises(SystemExit):
+        sync.main([])
+    assert "OBJECT_TRACKER_BUCKET" in capsys.readouterr().err

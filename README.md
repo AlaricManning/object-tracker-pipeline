@@ -41,6 +41,13 @@ re-processing a clip overwrites rather than duplicates.
 
 ## Running
 
+All commands accept `OBJECT_TRACKER_BUCKET` as the fallback for their
+`--bucket`/`--catalog`/`--location` flags — export it once and drop the flags:
+
+```bash
+export OBJECT_TRACKER_BUCKET=object-tracker-am
+```
+
 ```bash
 # See what a sync would do, without changing anything
 AWS_PROFILE=object-tracker-pipeline python -m object_tracker_pipeline.sync \

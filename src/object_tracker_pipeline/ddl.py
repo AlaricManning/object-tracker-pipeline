@@ -13,6 +13,7 @@ into the Athena query editor; see docs/athena-setup.md)
 """
 
 import argparse
+import os
 
 import pyarrow as pa
 
@@ -40,7 +41,7 @@ def athena_type(field: pa.Field) -> str:
 
 
 def generate_ddl(
-    location: str = "s3://object-tracker-am/catalog/detections/",
+    location: str,
     *,
     database: str = "object_tracker",
     table: str = "detections",
@@ -74,11 +75,15 @@ TBLPROPERTIES (
 
 
 def main(argv: list[str] | None = None) -> int:
+    bucket = os.environ.get("OBJECT_TRACKER_BUCKET")
     parser = argparse.ArgumentParser(
         description="Print the Athena DDL for the detections table."
     )
     parser.add_argument(
-        "--location", default="s3://object-tracker-am/catalog/detections/"
+        "--location",
+        default=f"s3://{bucket}/catalog/detections/" if bucket else None,
+        help="parquet location "
+        "(default: s3://$OBJECT_TRACKER_BUCKET/catalog/detections/)",
     )
     parser.add_argument("--database", default="object_tracker")
     parser.add_argument("--table", default="detections")
@@ -88,6 +93,8 @@ def main(argv: list[str] | None = None) -> int:
         help="earliest date partition Athena should project",
     )
     args = parser.parse_args(argv)
+    if not args.location:
+        parser.error("--location is required (or set OBJECT_TRACKER_BUCKET)")
     print(
         generate_ddl(
             args.location,

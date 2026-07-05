@@ -14,6 +14,7 @@ Credentials come from the environment (AWS_PROFILE); never from code/config.
 
 import argparse
 import logging
+import os
 import tempfile
 from dataclasses import dataclass, field
 from pathlib import Path
@@ -102,7 +103,11 @@ def main(argv: list[str] | None = None) -> int:
     parser = argparse.ArgumentParser(
         description="Sync raw KLV clips into the Parquet catalog."
     )
-    parser.add_argument("--bucket", required=True)
+    parser.add_argument(
+        "--bucket",
+        default=os.environ.get("OBJECT_TRACKER_BUCKET"),
+        help="S3 bucket (default: $OBJECT_TRACKER_BUCKET)",
+    )
     parser.add_argument("--raw-prefix", default="raw/")
     parser.add_argument("--catalog-prefix", default="catalog/")
     parser.add_argument(
@@ -111,6 +116,8 @@ def main(argv: list[str] | None = None) -> int:
         help="list clips that would be processed; change nothing",
     )
     args = parser.parse_args(argv)
+    if not args.bucket:
+        parser.error("--bucket is required (or set OBJECT_TRACKER_BUCKET)")
 
     logging.basicConfig(level=logging.INFO, format="%(levelname)s %(message)s")
     s3 = boto3.client("s3")

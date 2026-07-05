@@ -28,7 +28,7 @@ are queryable the instant the sync writes them.
 3. **Create the table.** Generate the DDL and paste it into the editor:
 
    ```bash
-   python -m object_tracker_pipeline.ddl
+   OBJECT_TRACKER_BUCKET=object-tracker-am python -m object_tracker_pipeline.ddl
    ```
 
    The DDL is generated from `transform.SCHEMA`, so it always matches what
