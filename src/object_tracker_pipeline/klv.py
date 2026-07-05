@@ -1,3 +1,6 @@
+# Vendored verbatim from the object-tracker edge repo (klv.py), which owns the
+# KLV contract. Do not modify — format changes require a coordinated migration
+# plan across both repos. Extraction to a shared package is a planned enhancement.
 """
 Simplified KLV (Key-Length-Value) encoder/decoder for object tracking metadata.
 

@@ -1,0 +1,15 @@
+[
+  {
+    "session_id": "session_20260703_142200",
+    "clip_id": "clip_0001",
+    "frame_id": 0,
+    "timestamp": "2026-07-03T14:22:07.481332+00:00",
+    "track_id": 1,
+    "class_name": "person",
+    "confidence": 0.9134,
+    "x1": 412.5,
+    "y1": 233.0,
+    "x2": 611.25,
+    "y2": 588.5
+  }
+]

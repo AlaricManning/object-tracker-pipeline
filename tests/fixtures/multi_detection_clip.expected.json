@@ -1,0 +1,54 @@
+[
+  {
+    "session_id": "session_20260703_142200",
+    "clip_id": "clip_0002",
+    "frame_id": 0,
+    "timestamp": "2026-07-03T14:25:11.102847+00:00",
+    "track_id": 4,
+    "class_name": "person",
+    "confidence": 0.6712,
+    "x1": 102.0,
+    "y1": 88.5,
+    "x2": 240.75,
+    "y2": 402.0
+  },
+  {
+    "session_id": "session_20260703_142200",
+    "clip_id": "clip_0002",
+    "frame_id": 0,
+    "timestamp": "2026-07-03T14:25:11.102847+00:00",
+    "track_id": 5,
+    "class_name": "bicycle",
+    "confidence": 0.5521,
+    "x1": 300.0,
+    "y1": 150.25,
+    "x2": 520.5,
+    "y2": 460.0
+  },
+  {
+    "session_id": "session_20260703_142200",
+    "clip_id": "clip_0002",
+    "frame_id": 1,
+    "timestamp": "2026-07-03T14:25:11.136180+00:00",
+    "track_id": 4,
+    "class_name": "person",
+    "confidence": 0.7003,
+    "x1": 104.5,
+    "y1": 90.0,
+    "x2": 243.0,
+    "y2": 405.5
+  },
+  {
+    "session_id": "session_20260703_142200",
+    "clip_id": "clip_0002",
+    "frame_id": 14,
+    "timestamp": "2026-07-03T14:25:11.569902+00:00",
+    "track_id": 4,
+    "class_name": "person",
+    "confidence": 0.9688,
+    "x1": 130.0,
+    "y1": 95.5,
+    "x2": 268.25,
+    "y2": 411.0
+  }
+]
