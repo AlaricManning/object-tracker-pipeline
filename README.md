@@ -85,7 +85,13 @@ con.execute("SELECT class_name, count(*) FROM detections GROUP BY 1").fetchall()
 
 The same catalog is queryable from the AWS console via Athena (table DDL is
 generated from the schema by `python -m object_tracker_pipeline.ddl`; one-time
-setup in [docs/athena-setup.md](docs/athena-setup.md)).
+setup in [docs/athena-setup.md](docs/athena-setup.md)):
+
+![Athena: near-miss clips from the last 7 days](docs/images/object-tracker-athena-near-miss.png)
+
+![Athena: detections by class and tier](docs/images/object-tracker-athena-tier-counts.png)
+
+![Athena: raw sample of the table](docs/images/object-tracker-athena-all.png)
 
 ## Development
 
