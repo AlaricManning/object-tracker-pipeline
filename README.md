@@ -41,29 +41,34 @@ re-processing a clip overwrites rather than duplicates.
 
 ## Running
 
+All commands accept `OBJECT_TRACKER_BUCKET` as the fallback for their
+`--bucket`/`--catalog`/`--location` flags — export it once and drop the flags:
+
+```bash
+export OBJECT_TRACKER_BUCKET=object-tracker-am
+```
+
 ```bash
 # See what a sync would do, without changing anything
-AWS_PROFILE=object-tracker-pipeline python -m object_tracker_pipeline.sync \
-    --bucket object-tracker-am --dry-run
+AWS_PROFILE=object-tracker-pipeline python -m object_tracker_pipeline.sync --dry-run
 
 # Run it for real
-AWS_PROFILE=object-tracker-pipeline python -m object_tracker_pipeline.sync \
-    --bucket object-tracker-am
+AWS_PROFILE=object-tracker-pipeline python -m object_tracker_pipeline.sync
 ```
 
 Idempotent and crash-safe: Parquet is uploaded before a clip is marked
 processed, and re-processing overwrites deterministic file names. The
 `object-tracker-pipeline` profile setup — its IAM policy is read-only on
-`raw/*`, read/write on `catalog/*`, no delete anywhere — is documented in
-[docs/aws-iam-setup.md](docs/aws-iam-setup.md); credentials are never stored
-in this repo.
+`raw/*`, read/write on `catalog/*` and Athena querying, no delete anywhere —
+is documented in [docs/aws-iam-setup.md](docs/aws-iam-setup.md); credentials
+are never stored in this repo.
 
 ## Querying
 
 ```bash
 # All near-miss clips from the last 7 days
 AWS_PROFILE=object-tracker-pipeline python -m object_tracker_pipeline.query \
-    --catalog s3://object-tracker-am/catalog --tier near_misses --days 7
+    --tier near_misses --days 7
 ```
 
 Each result line ends with the clip's `.ts` key, so anything the query finds
@@ -77,6 +82,16 @@ from object_tracker_pipeline import query
 con = query.connect("s3://object-tracker-am/catalog")
 con.execute("SELECT class_name, count(*) FROM detections GROUP BY 1").fetchall()
 ```
+
+The same catalog is queryable from the AWS console via Athena (table DDL is
+generated from the schema by `python -m object_tracker_pipeline.ddl`; one-time
+setup in [docs/athena-setup.md](docs/athena-setup.md)):
+
+![Athena: near-miss clips from the last 7 days](docs/images/object-tracker-athena-near-miss.png)
+
+![Athena: detections by class and tier](docs/images/object-tracker-athena-tier-counts.png)
+
+![Athena: raw sample of the table](docs/images/object-tracker-athena-all.png)
 
 ## Development
 
@@ -94,3 +109,4 @@ pytest
 - Scheduled sync (cron/systemd, or GitHub Actions with OIDC) with backfill support
 - Manifest compaction (many small `_manifest/` objects → one) if ledger listing ever gets slow
 - Catalog hygiene: if `raw/` ever gets retention-based deletion, remove catalog rows whose `.ts` no longer exists
+- S3 lifecycle rule expiring `athena-results/*` after ~30 days (S3 does the deleting; no IAM delete permission needed)

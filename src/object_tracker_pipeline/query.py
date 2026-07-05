@@ -13,6 +13,7 @@ Run as:  python -m object_tracker_pipeline.query --catalog <path-or-s3-url> \
 """
 
 import argparse
+import os
 from datetime import UTC, datetime, timedelta
 
 import duckdb
@@ -42,6 +43,9 @@ def connect(catalog: str) -> duckdb.DuckDBPyConnection:
     `catalog` is the catalog root — a local path or `s3://bucket/catalog`.
     """
     con = duckdb.connect()
+    # DuckDB defaults to the system timezone; keep results in UTC like the
+    # catalog itself, so displayed times match session/key names.
+    con.execute("SET TimeZone = 'UTC'")
     if catalog.startswith("s3://"):
         con.execute("INSTALL httpfs; LOAD httpfs;")
         con.execute("CREATE SECRET (TYPE s3, PROVIDER credential_chain)")
@@ -97,16 +101,20 @@ def near_miss_clips(con: duckdb.DuckDBPyConnection, days: int = 7) -> pa.Table:
 
 
 def main(argv: list[str] | None = None) -> int:
+    bucket = os.environ.get("OBJECT_TRACKER_BUCKET")
     parser = argparse.ArgumentParser(description="Query the detection catalog.")
     parser.add_argument(
         "--catalog",
-        required=True,
-        help="catalog root: local path or s3://bucket/catalog",
+        default=f"s3://{bucket}/catalog" if bucket else None,
+        help="catalog root: local path or s3://bucket/catalog "
+        "(default: s3://$OBJECT_TRACKER_BUCKET/catalog)",
     )
     parser.add_argument("--tier", choices=["hits", "near_misses"])
     parser.add_argument("--class", dest="class_name", help="filter by COCO class name")
     parser.add_argument("--days", type=int, help="only clips from the last N days")
     args = parser.parse_args(argv)
+    if not args.catalog:
+        parser.error("--catalog is required (or set OBJECT_TRACKER_BUCKET)")
 
     since = None
     if args.days is not None:
@@ -118,7 +126,7 @@ def main(argv: list[str] | None = None) -> int:
     for row in table.to_pylist():
         classes = ",".join(row["classes"])
         print(
-            f"{row['started_at']:%Y-%m-%d %H:%M:%S}  "
+            f"{row['started_at']:%Y-%m-%d %H:%M:%S %Z}  "
             f"{row['tier']:<11}  "
             f"peak={row['peak_confidence']:.2f}  "
             f"n={row['detections']:<4d}  "

@@ -111,6 +111,13 @@ def test_connect_on_empty_catalog_raises(tmp_path):
         query.connect(str(tmp_path))
 
 
+def test_cli_errors_without_catalog_or_env(monkeypatch, capsys):
+    monkeypatch.delenv("OBJECT_TRACKER_BUCKET", raising=False)
+    with pytest.raises(SystemExit):
+        query.main([])
+    assert "OBJECT_TRACKER_BUCKET" in capsys.readouterr().err
+
+
 def test_cli_prints_clips(catalog, capsys):
     assert query.main(["--catalog", str(catalog), "--tier", "near_misses"]) == 0
     out = capsys.readouterr().out
