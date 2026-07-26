@@ -8,6 +8,8 @@ version = "0.1.0"
 description = "ELT pipeline: unpack object-tracker KLV clip metadata from S3 into a queryable Parquet catalog"
 readme = "README.md"
 requires-python = ">=3.12"
+license = { text = "MIT" }
+authors = [{ name = "Alaric Manning" }]
 dependencies = [
     "boto3>=1.26",
     "duckdb>=1.0",

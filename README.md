@@ -118,3 +118,11 @@ pytest
 - Manifest compaction (many small `_manifest/` objects → one) if ledger listing ever gets slow
 - Catalog hygiene: if `raw/` ever gets retention-based deletion, remove catalog rows whose `.ts` no longer exists
 - S3 lifecycle rule expiring `athena-results/*` after ~30 days (S3 does the deleting; no IAM delete permission needed)
+
+## License
+
+MIT — see [LICENSE](LICENSE). Copyright (c) 2026 Alaric Manning.
+
+This repo only moves and queries metadata, so it carries no AGPL dependency.
+The edge repo it reads from, [object-tracker](https://github.com/AlaricManning/object-tracker),
+is AGPL-3.0 because it runs Ultralytics YOLO.
